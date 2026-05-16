@@ -1,0 +1,31 @@
+stages:
+    - lint
+    - test
+    - security
+
+lint-frontend:
+    stage: lint
+    image: node:20-alpine
+    script:
+        - echo "Linting frontend..."
+        - cd frontend
+        - npm ci
+        - npx prettier -c src/**/*.{ts,vue}
+
+unit-test-frontend:
+    stage: test
+    image: node:20-alpine
+    script:
+        - echo "Running frontend unit tests..."
+        - cd frontend
+        - npm ci
+        - npm run test:unit
+
+audit-frontend:
+    stage: security
+    image: node:20-alpine
+    script:
+        - echo "Auditing frontend dependencies..."
+        - cd frontend
+        - npm ci
+        - npm audit --audit-level=high

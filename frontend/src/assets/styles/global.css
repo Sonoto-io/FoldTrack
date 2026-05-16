@@ -1,0 +1,28 @@
+.p-button {
+  transition: transform 0.1s ease;
+}
+
+.p-button:hover {
+  transform: translate(-2px, -2px);
+}
+
+.p-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none !important;
+}
+
+.p-inputtext:focus,
+.p-select:focus,
+.p-textarea:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 3px #000,
+    4px 4px 0 #ffa42d !important;
+}
+
+.p-card,
+.p-dialog,
+.p-menu,
+.p-select-overlay {
+  border: 3px solid black;
+}
