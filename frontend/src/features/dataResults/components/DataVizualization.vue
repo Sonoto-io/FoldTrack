@@ -1,5 +1,5 @@
 <template>
-  <div class="card grid grid-cols-1 grid-rows-[50px_1fr] gap-6 snap-start">
+  <div class="card grid grid-cols-1 grid-rows-[50px_1fr] gap-6">
     <Select
       fluid
       v-model="timeSpan"
@@ -13,9 +13,10 @@
       <Button
         label="Remove all entries"
         severity="danger"
-        @click="foldEntriesStore.clearEntries"
+        @click="confirmDeleteAll"
         class="w-full"
       />
+      <ConfirmDialog></ConfirmDialog>
     </div>
     <div v-else class="flex justify-center items-center text-muted-foreground card">
       <JPExplanation />
@@ -27,13 +28,17 @@
 import { useFoldEntriesStore } from '@/stores/foldEntries'
 import DataChart from './DataChart.vue'
 import Tendency from './Tendency.vue'
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import JPExplanation from '@/features/shared/components/JPExplanation.vue'
 import Select from 'primevue/select'
+import ConfirmDialog from 'primevue/confirmdialog'
+
 import Button from 'primevue/button'
 import type { BodyCompositionEntry } from '@/features/shared/shared.types'
 import type { EntryData } from '../charts.types'
+import { useConfirm } from 'primevue/useconfirm'
 
+const confirm = useConfirm()
 const foldEntriesStore = useFoldEntriesStore()
 const chartData = ref<EntryData[]>([])
 const timeSpanOptions = [
@@ -45,10 +50,13 @@ const timeSpanOptions = [
 ]
 const timeSpan = ref('all')
 
+onMounted(() => {
+  chartData.value = foldEntriesToEntryData(foldEntriesStore.entries)
+})
+
 watch(
   () => foldEntriesStore.entries,
   () => {
-    console.log('entries', foldEntriesStore.entries)
     chartData.value = foldEntriesStore.entries.map((entry) => {
       return {
         date: entry.date,
@@ -76,7 +84,7 @@ watch(timeSpan, () => {
             ? 365
             : null
     if (numberOfDays) {
-      chartData.value = foldEntriesToEntryData(foldEntriesStore.getEntriesByTimeSpan(numberOfDays))
+      chartData.value = foldEntriesToEntryData(foldEntriesStore.getSinceNDays(numberOfDays))
     }
   }
 })
@@ -89,4 +97,31 @@ const foldEntriesToEntryData = (entries: BodyCompositionEntry[]) => {
     }
   })
 }
+
+const confirmDeleteAll = () => {
+  confirm.require({
+    message: 'You will delete all data forever.',
+    header: 'Are you sure ?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Save',
+    },
+    accept: () => {
+      foldEntriesStore.clearEntries()
+    },
+  })
+}
 </script>
+
+<style>
+.p-button-outlined.p-button-secondary {
+  background: transparent;
+  border-color: var(--color-text-muted) !important;
+  color: var(--color-white) !important;
+}
+</style>

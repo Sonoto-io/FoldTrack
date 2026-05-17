@@ -153,3 +153,9 @@ const genderOptions = Object.values(Gender).map((g) => ({
   value: g,
 }))
 </script>
+
+<style>
+.p-button-text.p-button-secondary {
+  color: var(--color-primary) !important;
+}
+</style>
