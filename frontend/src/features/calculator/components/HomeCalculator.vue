@@ -1,5 +1,5 @@
 <template>
-  <div class="home-calculator-measures" id="calculator">
+  <div class="home-calculator-measures">
     <CalculatorForm />
   </div>
 </template>

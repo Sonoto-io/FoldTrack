@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import Tooltip from 'primevue/tooltip'
+import ConfirmationService from 'primevue/confirmationservice'
+
 import './assets/styles/styles.css'
 import './assets/styles/global.css'
 
@@ -26,6 +28,7 @@ app.use(PrimeVue, {
   },
 })
 
+app.use(ConfirmationService)
 app.use(createPinia())
 app.directive('tooltip', Tooltip)
 app.use(router)
