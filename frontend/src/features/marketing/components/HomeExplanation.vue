@@ -14,7 +14,7 @@
     <!-- MOBILE: horizontal scroll -->
     <!-- DESKTOP: 3 columns -->
     <div
-      class="gap-4 overflow-x-auto snap-x snap-mandatory pb-4 md:grid md:grid-cols-3 md:overflow-visible"
+      class="gap-4 overflow-x-auto snap-x snap-mandatory pb-4 grid grid-cols-1 md:grid-cols-3 md:overflow-visible"
     >
       <article
         v-for="(section, index) in sections"
@@ -43,9 +43,10 @@
           <template #toggleicon="{ collapsed }">
             <i :class="collapsed ? 'pi pi-plus text-text-muted' : 'pi pi-minus text-text-muted'" />
           </template>
-          <p class="leading-8 text-text-secondary whitespace-pre-line">
-            {{ section.description }}
-          </p>
+          <p
+            class="leading-8 text-text-secondary whitespace-pre-line"
+            v-html="section.description"
+          ></p>
         </Panel>
 
         <ul class="grid gap-3 pl-5 font-bold">
@@ -56,9 +57,15 @@
 
         <!-- SVG placeholder -->
         <div
-          class="flex items-center justify-center min-h-[180px] border-4 border-dashed border-border bg-surface font-black uppercase tracking-[0.08em]"
+          class="flex items-center justify-center min-h-45 bg-surface font-black uppercase tracking-[0.08em]"
         >
-          Illustration placeholder
+          <img
+            v-if="section.illustration"
+            :src="section.illustration"
+            alt="Illustration"
+            class="max-w-full max-h-45 object-contain"
+          />
+          <div v-else>Illustration placeholder</div>
         </div>
       </article>
     </div>
@@ -66,12 +73,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Panel } from 'primevue'
+import { Image, Panel } from 'primevue'
+import caliperBorders from '@/features/marketing/assets/images/caliper_borders.svg'
+import smartScaleBorders from '@/features/marketing/assets/images/smart_scale_borders.svg'
+import graphBorders from '@/features/marketing/assets/images/graph_borders.svg'
 
 const sections = [
   {
     title: 'Why consumer smart scales can feel inconsistent',
+    illustration: smartScaleBorders,
     description: `
 Most non-medical smart scales use bioelectrical impedance analysis (BIA).
 They estimate body composition by sending a very small electrical signal
@@ -91,6 +101,7 @@ progression has not.
   },
   {
     title: 'Jackson-Pollock method for body composition',
+    illustration: graphBorders,
     description: `
 The Jackson-Pollock method estimates body fat using skinfold measurements.
 Instead of relying on electrical signals, it uses the thickness of specific
@@ -108,6 +119,7 @@ over time.
   },
   {
     title: 'Correct skinfold placement matters with calipers',
+    illustration: caliperBorders,
     description: `
 Measurement consistency is more important than perfection.
 Taking measurements from the same anatomical locations each time helps
@@ -115,6 +127,8 @@ reduce variability and improves trend accuracy.
 
 FoldTrack helps you identify and remember the correct pinch locations
 used in the Jackson-Pollock protocol.
+
+Here's a caliper example to find on Amazon: <a href="https://amzn.to/3Rw1LZr" target="_blank" class="text-primary-500 hover:underline">https://amzn.to/3Rw1LZr</a> (affiliate link).
     `,
     points: [
       'Use the same side of the body every time',

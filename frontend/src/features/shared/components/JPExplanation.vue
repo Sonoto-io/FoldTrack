@@ -11,9 +11,9 @@
     </h2>
 
     <p class="max-w-2xl text-sm leading-7 text-surface-600 dark:text-surface-300">
-      The <span class="font-semibold">Jackson-Pollock method</span>
-      estimates body fat percentage using skinfold measurements taken at specific points on the body
-      with calipers.
+      The <span class="font-semibold">Jackson-Pollock method</span> estimates body fat percentage
+      using skinfold measurements taken at specific anatomical points with calipers. Consistent
+      weekly measurements at the same sites and technique give the most useful trends over time.
     </p>
 
     <div class="mt-5 rounded-2xl bg-surface-100 px-5 py-4 text-left text-sm card">
@@ -30,7 +30,11 @@
 
     <p class="mt-5 max-w-2xl text-sm leading-7 text-surface-600 dark:text-surface-300">
       Add your first skinfold entry to calculate your estimated body fat percentage and track your
-      progress over time.
+      progress over time. If you need a reliable mechanical caliper, consider this one
+      <a href="https://amzn.to/3Rw1LZr" target="_blank" class="text-primary-500 hover:underline"
+        >https://amzn.to/3Rw1LZr</a
+      >
+      (affiliate link).
     </p>
   </div>
 </template>

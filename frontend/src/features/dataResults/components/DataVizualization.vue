@@ -109,7 +109,8 @@ const confirmDeleteAll = () => {
       outlined: true,
     },
     acceptProps: {
-      label: 'Save',
+      label: 'Delete',
+      severity: 'danger',
     },
     accept: () => {
       foldEntriesStore.clearEntries()

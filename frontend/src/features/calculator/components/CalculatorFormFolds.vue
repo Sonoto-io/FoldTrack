@@ -21,6 +21,7 @@
                   :modelValue="value"
                   @update:modelValue="(val) => fieldProps.onInput({ value: val })"
                   placeholder="mm"
+                  v-tooltip.bottom="tooltipTexts[field]"
                 />
                 <Message v-if="errors?.length" severity="error" size="small" variant="simple">
                   {{ error.message || errors[0].message }}
@@ -80,6 +81,17 @@ const getFields = (tab: 3 | 4 | 7, gender: Gender | null) => {
   } else {
     return foldConfig[tab]
   }
+}
+
+// Short tooltip guidance for each skinfold site (concise, user-facing)
+const tooltipTexts: Record<string, string> = {
+  pectoral: 'Pectoral: diagonal pinch on the chest, midway between nipple and armpit.',
+  abdominal: 'Abdominal: vertical pinch about 2 cm to the right of the navel.',
+  thigh: 'Thigh: vertical pinch at the midpoint of the anterior thigh.',
+  triceps: 'Triceps: vertical pinch at the midpoint of the posterior upper arm.',
+  suprailiac: 'Suprailiac: diagonal pinch just above the iliac crest, slightly forward.',
+  midaxillary: 'Midaxillary: vertical pinch on the midaxillary line at the level of the xiphoid.',
+  subscapular: 'Subscapular: diagonal pinch below the shoulder blade (about 2 cm).',
 }
 </script>
 
