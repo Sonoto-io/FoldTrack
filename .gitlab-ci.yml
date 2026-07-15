@@ -3,29 +3,53 @@ stages:
     - test
     - security
 
+default:
+  image: node:26
+  before_script:
+    - npm install -g pnpm@11
+
 lint-frontend:
     stage: lint
-    image: node:20-alpine
     script:
         - echo "Linting frontend..."
         - cd frontend
-        - npm ci
+        - pnpm ci
         - npx prettier -c src/**/*.{ts,vue}
 
 unit-test-frontend:
     stage: test
-    image: node:20-alpine
     script:
         - echo "Running frontend unit tests..."
         - cd frontend
-        - npm ci
-        - npm run test:unit
+        - pnpm ci
+        - pnpm run test:unit
+
+e2e-test-frontend:
+    stage: test
+    variables:
+        # Never used for real network calls — e2e tests mock every Supabase
+        # request via Playwright route interception (see tests/e2e/fixtures.ts).
+        # createClient() throws synchronously without these, which crashes the
+        # whole app at boot and fails every single e2e test, not just auth ones.
+        VITE_SUPABASE_URL: "https://e2e-test.supabase.co"
+        VITE_SUPABASE_PUBLISHABLE_KEY: "e2e-test-placeholder-key"
+        CI: true
+    script:
+        - echo "Running frontend e2e tests..."
+        - cd frontend
+        - pnpm ci
+        - pnpm exec playwright install --with-deps chromium firefox
+        - pnpm run test:e2e
+    artifacts:
+        when: always
+        paths:
+            - frontend/playwright-report/
+        expire_in: 7 days
 
 audit-frontend:
     stage: security
-    image: node:20-alpine
     script:
         - echo "Auditing frontend dependencies..."
         - cd frontend
-        - npm ci
-        - npm audit --audit-level=high
+        - pnpm ci
+        - pnpm audit --audit-level=high

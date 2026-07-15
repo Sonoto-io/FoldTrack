@@ -46,8 +46,8 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
-import { Gender } from '../calculator.enum'
-import { formatLabel } from '@/features/shared/format.services'
+import { Gender } from '@/features/shared/shared.enum'
+import { formatLabel } from '@/features/shared/shared.services'
 
 const props = defineProps<{
   gender: Gender | null

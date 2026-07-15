@@ -1,5 +1,5 @@
 <template>
-  <section id="explanation" class="grid gap-12 mt-24 snap-start">
+  <section id="explanation" class="grid gap-12 mt-24 snap-start pt-16">
     <div class="grid gap-4">
       <p class="text-primary text-sm font-black uppercase tracking-[0.2em]">
         UNDERSTAND THE METHOD
@@ -14,7 +14,7 @@
     <!-- MOBILE: horizontal scroll -->
     <!-- DESKTOP: 3 columns -->
     <div
-      class="gap-4 overflow-x-auto snap-x snap-mandatory pb-4 grid grid-cols-1 md:grid-cols-3 md:overflow-visible"
+      class="gap-4 overflow-x-auto snap-x snap-mandatory pb-4 grid grid-flow-col md:grid-cols-3 md:overflow-visible"
     >
       <article
         v-for="(section, index) in sections"

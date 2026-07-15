@@ -26,3 +26,22 @@
 .p-select-overlay {
   border: 3px solid black;
 }
+
+.primary-cta,
+.secondary-cta {
+  border: 5px solid var(--color-border);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.primary-cta {
+  background: var(--color-primary);
+  color: black;
+}
+
+.secondary-cta {
+  background: var(--color-secondary);
+  color: black;
+}

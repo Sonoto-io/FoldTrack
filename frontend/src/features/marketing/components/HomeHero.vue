@@ -15,10 +15,14 @@
       </p>
 
       <div class="hero-actions">
-        <button type="button" @click="handleStartMeasures" class="primary-cta">
+        <button type="button" @click="handleStartMeasures" class="primary-cta py-4 px-6">
           Start measuring
         </button>
-        <button type="button" @click="scrollToElement('explanation')" class="secondary-cta">
+        <button
+          type="button"
+          @click="scrollToElement('explanation')"
+          class="secondary-cta py-4 px-6"
+        >
           See how it works
         </button>
       </div>
@@ -98,26 +102,6 @@ const handleStartMeasures = () => {
   flex-wrap: wrap;
   gap: 1rem;
   margin-top: 2rem;
-}
-
-.primary-cta,
-.secondary-cta {
-  border: 5px solid var(--color-border);
-  padding: 1rem 1.5rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-}
-
-.primary-cta {
-  background: var(--color-primary);
-  color: black;
-}
-
-.secondary-cta {
-  background: var(--color-secondary);
-  color: black;
 }
 
 .hero-panel-right {

@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+
+  // Playwright tests run in Node, not the app's Vite/browser build, but they
+  // do exercise `page.evaluate()` callbacks that run in the browser (e.g.
+  // reading `localStorage`) — so keep the DOM lib from tsconfig.app.json and
+  // just add Node and Playwright's own types on top.
+  "include": ["tests/e2e/**/*.ts"],
+  "exclude": [],
+
+  "compilerOptions": {
+    "types": ["node", "@playwright/test"],
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.e2e.tsbuildinfo"
+  }
+}
