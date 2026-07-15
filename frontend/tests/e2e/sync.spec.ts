@@ -28,14 +28,12 @@ const logout = async (page: Page) => {
 
 // No-op if there is nothing to clear (button only renders once there is data).
 //
-// Note: while logged in, this does NOT reliably leave the store empty. The
-// sync watcher (src/features/sync/sync.service.ts) only ever unions backend
-// and local entries — it never propagates deletions — so if the backend
-// already holds synced data, the very next sync tick after clearing merges
-// it straight back into local storage. This helper is only used to drive the
-// UI action described in the test scenario; assertions in this file
-// deliberately don't depend on the store staying empty afterwards while
-// authenticated.
+// While logged in, this goes through clearEntriesService
+// (src/features/sync/sync.service.ts), which deletes the user's rows on the
+// backend before clearing local storage — so, unlike the background sync
+// watcher's merge (which only ever unions backend and local entries and can't
+// express a deletion), this is authoritative and the store reliably stays
+// empty afterwards. See the dedicated regression test below.
 const removeAllEntries = async (page: Page) => {
   const removeButton = page.getByRole('button', { name: 'Remove all entries' })
   if (await removeButton.isVisible().catch(() => false)) {
@@ -121,4 +119,42 @@ test('an entry synced while logged in survives logout, a local clear, and re-log
     .poll(() => getLocalEntries(page))
     .toContainEqual(expect.objectContaining({ date: entryDate }))
   await expect(page.getByRole('button', { name: 'Remove all entries' })).toBeVisible()
+})
+
+test('removing all entries while logged in deletes them from the backend and does not resurrect them', async ({
+  page,
+  entriesStore,
+}) => {
+  await page.goto('/')
+  await removeAllEntries(page)
+
+  await login(page)
+  await removeAllEntries(page)
+
+  await addEntry(page, '2021', 'Mar', '10')
+
+  type LocalEntry = { date: string; gender: string }
+  let addedEntries: LocalEntry[] = []
+  await expect
+    .poll(async () => {
+      addedEntries = await getLocalEntries(page)
+      return addedEntries.filter((entry) => entry.gender === 'female')
+    })
+    .toHaveLength(1)
+  const entryDate = addedEntries.find((entry) => entry.gender === 'female')!.date
+
+  // Wait for the background syncer to push the new entry to the (mocked)
+  // backend before deleting, otherwise this test could pass by accident
+  // (deleting before the entry ever reached the backend).
+  await expect.poll(() => entriesStore.some((entry) => entry.date === entryDate)).toBe(true)
+
+  await removeAllEntries(page)
+
+  await expect.poll(() => getLocalEntries(page)).toEqual([])
+  expect(entriesStore.some((entry) => entry.date === entryDate)).toBe(false)
+
+  // A later sync tick (e.g. the deep watcher on the entries store) must not
+  // resurrect the deleted entry from the backend.
+  await page.waitForTimeout(1000)
+  await expect.poll(() => getLocalEntries(page)).toEqual([])
 })

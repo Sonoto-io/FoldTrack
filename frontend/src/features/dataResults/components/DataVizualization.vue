@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { useFoldEntriesStore } from '@/stores/foldEntries'
+import { clearEntriesService } from '@/features/sync/sync.service'
 import DataChart from './DataChart.vue'
 import Trend from './Trend.vue'
 import { onMounted, ref, watch } from 'vue'
@@ -112,8 +113,8 @@ const confirmDeleteAll = () => {
       label: 'Delete',
       severity: 'danger',
     },
-    accept: () => {
-      foldEntriesStore.clearEntries()
+    accept: async () => {
+      await clearEntriesService()
     },
   })
 }

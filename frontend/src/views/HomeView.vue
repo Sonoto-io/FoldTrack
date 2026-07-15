@@ -21,20 +21,36 @@
 import HomeCalculator from '@/features/calculator/components/HomeCalculator.vue'
 import HomeHero from '@/features/marketing/components/HomeHero.vue'
 import DataVisualization from '@/features/dataResults/components/DataVizualization.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useFoldEntriesStore } from '@/stores/foldEntries'
+import { useAuthStore } from '@/stores/auth'
 import HomeExplanation from '@/features/marketing/components/HomeExplanation.vue'
 import { scrollToElement } from '@/features/shared/navigation.services'
 import HeaderBar from '@/features/marketing/components/HeaderBar.vue'
 import Toast from 'primevue/toast'
 
 const foldEntriesStore = useFoldEntriesStore()
+const authStore = useAuthStore()
 
 onMounted(() => {
-  if (foldEntriesStore.entries.length === 0) {
-    foldEntriesStore.exampleSetup()
-  } else {
+  if (foldEntriesStore.entries.length > 0) {
     scrollToElement('calculator')
   }
 })
+
+// Demo data must never be seeded for an authenticated user — the background
+// syncer would treat it as real data and push it to their backend row (see
+// sync.service.ts). Wait for the auth session-restore check (authStore.init())
+// to resolve before deciding, otherwise a logged-in user whose session hasn't
+// loaded yet would be misread as a guest at mount time.
+watch(
+  () => authStore.loading,
+  (loading) => {
+    if (loading) return
+    if (!authStore.isAuthenticated && foldEntriesStore.entries.length === 0) {
+      foldEntriesStore.exampleSetup()
+    }
+  },
+  { immediate: true },
+)
 </script>

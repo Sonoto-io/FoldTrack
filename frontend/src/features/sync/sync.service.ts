@@ -1,7 +1,7 @@
 import { onMounted, watch } from 'vue'
 import { useFoldEntriesStore } from '@/stores/foldEntries'
 import { useAuthStore } from '@/stores/auth'
-import { getEntries, syncEntries } from '@/api/entries'
+import { getEntries, syncEntries, deleteAllEntries } from '@/api/entries'
 import type {
   BodyCompositionEntry,
   BodyCompositionEntryInsert,
@@ -103,4 +103,19 @@ const syncEntriesService = async () => {
     entryStore.entries = mergedEntries
     await updateBackendEntries(mergedEntries, authStore.isPremium, authStore.user.id)
   }
+}
+
+// The background sync merge only ever unions backend and local entries — it
+// never propagates deletions (see syncEntriesService above) — so clearing
+// local storage alone isn't enough while authenticated: the next sync tick
+// would just fetch the untouched backend copy and merge it straight back in.
+// Deleting on the backend first means that tick has nothing left to restore.
+export const clearEntriesService = async () => {
+  const entryStore = useFoldEntriesStore()
+  const authStore = useAuthStore()
+
+  if (authStore.isAuthenticated && authStore.user) {
+    await deleteAllEntries(authStore.user.id)
+  }
+  entryStore.clearEntries()
 }
