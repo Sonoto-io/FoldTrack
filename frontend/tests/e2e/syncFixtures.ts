@@ -66,11 +66,17 @@ export const test = base.extend<{ entriesStore: StoredEntry[] }>({
 
       if (request.method() === 'DELETE') {
         const idFilter = url.searchParams.get('id')
+        const userIdFilter = url.searchParams.get('user_id')
         if (idFilter?.startsWith('in.(')) {
           const ids = idFilter.slice(4, -1).split(',')
           for (const id of ids) {
             const index = entriesStore.findIndex((entry) => entry.id === id)
             if (index !== -1) entriesStore.splice(index, 1)
+          }
+        } else if (userIdFilter?.startsWith('eq.')) {
+          const userId = userIdFilter.slice(3)
+          for (let i = entriesStore.length - 1; i >= 0; i--) {
+            if (entriesStore[i]?.user_id === userId) entriesStore.splice(i, 1)
           }
         }
         await route.fulfill({ status: 204 })

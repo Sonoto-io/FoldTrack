@@ -28,6 +28,11 @@ const deleteEntries = async (entryIds: string[]) => {
   return { data, error }
 }
 
+export const deleteAllEntries = async (userId: string) => {
+  const { data, error } = await api.from('body_composition_entries').delete().eq('user_id', userId)
+  return { data, error }
+}
+
 const updateEntries = async (entries: BodyCompositionEntryInsert[]) => {
   const payload = entries.map(transformToSnake)
   const { data, error } = await api
