@@ -1,7 +1,8 @@
-import type { FoldsMeasurements, InputDataNotNull } from './calculator.types'
+import type { InputDataNotNull } from '../calculator.types'
 import { expect, test } from 'vitest'
 import { skinfoldsSum, calculateBodyComposition } from '../calculator.service'
-import { Gender } from '../calculator.enum'
+import { Gender } from '@/features/shared/shared.enum'
+
 describe('skinfoldsSum', () => {
   test('should return the sum of 2 folds values', () => {
     expect(skinfoldsSum({ triceps: 1, suprailiac: 2 }, ['triceps', 'suprailiac'])).toBe(3)

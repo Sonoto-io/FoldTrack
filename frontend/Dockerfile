@@ -1,8 +1,8 @@
-FROM node:20-alpine
+FROM ghcr.io/pnpm/pnpm:11
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN pnpm install
 
 COPY . .

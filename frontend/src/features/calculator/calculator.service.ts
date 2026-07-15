@@ -1,4 +1,5 @@
-import type { FoldsMeasurements, InputDataNotNull } from './calculator.types'
+import type { InputDataNotNull } from './calculator.types'
+import type { FoldsMeasurements } from '@/features/shared/shared.types'
 
 export const skinfoldsSum = (
   skinfolds: FoldsMeasurements,

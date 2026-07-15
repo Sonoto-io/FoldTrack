@@ -69,12 +69,12 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { computed, ref, type Ref } from 'vue'
 import { z } from 'zod'
 import { type InputDataNotNull, type MainInputData } from '../calculator.types'
-import { Gender } from '../calculator.enum'
+import { Gender } from '@/features/shared/shared.enum'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
 import DatePicker from 'primevue/datepicker'
-import { formatLabel } from '@/features/shared/format.services'
+import { formatLabel } from '@/features/shared/shared.services.ts'
 import BodyCompositionResult from './BodyCompositionResult.vue'
 import { useFoldEntriesStore } from '@/stores/foldEntries'
 
@@ -139,7 +139,6 @@ const onFormSubmit = (event: FormSubmitEvent) => {
     submittedValues.value.date = formattedDate
     // add to store
     foldEntriesStore.insertEntry(submittedValues.value)
-    console.log('Current fold entries in store:', foldEntriesStore.entries)
   }
 }
 

@@ -1,6 +1,4 @@
-import type { Gender } from '../calculator/calculator.enum'
-import type { FoldsMeasurements } from '../calculator/calculator.types'
-
+import type { Gender } from './shared.enum'
 export interface BodyCompositionEntry {
   date: string
   age: number
@@ -9,4 +7,27 @@ export interface BodyCompositionEntry {
   skinfolds: FoldsMeasurements
   foldsCount: number
   bodyFatPercentage: number
+}
+
+export interface ErrorConstructor {
+  captureStackTrace(thisArg: any, func: any): void
+}
+
+export interface BodyCompositionEntrySelect extends BodyCompositionEntry {
+  user_id: string
+  id: string
+}
+
+export interface BodyCompositionEntryInsert extends BodyCompositionEntry {
+  user_id: string
+}
+
+export interface FoldsMeasurements {
+  triceps: number | null
+  suprailiac: number | null
+  thigh: number | null
+  abdominal: number | null
+  pectoral: number | null
+  midaxillary: number | null
+  subscapular: number | null
 }

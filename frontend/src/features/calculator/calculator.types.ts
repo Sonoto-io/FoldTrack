@@ -1,4 +1,5 @@
-import { Gender } from './calculator.enum'
+import type { FoldsMeasurements } from '@/features/shared/shared.types'
+import { Gender } from '@/features/shared/shared.enum'
 
 export interface MainInputData {
   date: string | null
@@ -16,14 +17,4 @@ export interface InputDataNotNull {
   weight: number
   skinfolds: FoldsMeasurements
   foldsCount: number
-}
-
-export interface FoldsMeasurements {
-  triceps: number | null
-  suprailiac: number | null
-  thigh: number | null
-  abdominal: number | null
-  pectoral: number | null
-  midaxillary: number | null
-  subscapular: number | null
 }

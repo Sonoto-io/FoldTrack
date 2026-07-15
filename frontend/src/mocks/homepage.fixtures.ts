@@ -1,5 +1,5 @@
-import { Gender } from '@/features/calculator/calculator.enum'
-import type { FoldsMeasurements } from '@/features/calculator/calculator.types'
+import { Gender } from '@/features/shared/shared.enum'
+import type { FoldsMeasurements } from '@/features/shared/shared.types'
 import type { BodyCompositionEntry } from '@/features/shared/shared.types'
 
 export const skinfoldsExample: FoldsMeasurements = {

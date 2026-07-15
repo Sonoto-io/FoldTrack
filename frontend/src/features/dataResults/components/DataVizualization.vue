@@ -9,7 +9,7 @@
     />
     <div v-if="chartData.length > 0" class="grid grid-cols-1 grid-rows-[2fr_1fr_50px] gap-6 w-full">
       <DataChart :data="chartData" title="Body fat percentage" />
-      <Tendency :data="chartData" />
+      <Trend :data="chartData" />
       <Button
         label="Remove all entries"
         severity="danger"
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { useFoldEntriesStore } from '@/stores/foldEntries'
 import DataChart from './DataChart.vue'
-import Tendency from './Tendency.vue'
+import Trend from './Trend.vue'
 import { onMounted, ref, watch } from 'vue'
 import JPExplanation from '@/features/shared/components/JPExplanation.vue'
 import Select from 'primevue/select'
@@ -56,8 +56,8 @@ onMounted(() => {
 
 watch(
   () => foldEntriesStore.entries,
-  () => {
-    chartData.value = foldEntriesStore.entries.map((entry) => {
+  (entries) => {
+    chartData.value = entries.map((entry) => {
       return {
         date: entry.date,
         value: entry.bodyFatPercentage,
