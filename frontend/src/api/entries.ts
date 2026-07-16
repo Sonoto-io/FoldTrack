@@ -33,6 +33,15 @@ export const deleteAllEntries = async (userId: string) => {
   return { data, error }
 }
 
+export const deleteEntryByDate = async (userId: string, date: string) => {
+  const { data, error } = await api
+    .from('body_composition_entries')
+    .delete()
+    .eq('user_id', userId)
+    .eq('date', date)
+  return { data, error }
+}
+
 const updateEntries = async (entries: BodyCompositionEntryInsert[]) => {
   const payload = entries.map(transformToSnake)
   const { data, error } = await api

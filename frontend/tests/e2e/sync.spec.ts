@@ -34,11 +34,14 @@ const logout = async (page: Page) => {
 // watcher's merge (which only ever unions backend and local entries and can't
 // express a deletion), this is authoritative and the store reliably stays
 // empty afterwards. See the dedicated regression test below.
+//
+// `exact: true` is required because the calculator's own "Delete entry"
+// button is always present on the page and is a substring match for "Delete".
 const removeAllEntries = async (page: Page) => {
   const removeButton = page.getByRole('button', { name: 'Remove all entries' })
   if (await removeButton.isVisible().catch(() => false)) {
     await removeButton.click()
-    await page.getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('button', { name: 'Delete', exact: true }).click()
   }
 }
 
@@ -69,6 +72,15 @@ const addEntry = async (page: Page, year: string, month: string, day: string) =>
   await pickDate(page, year, month, day)
   await page.getByRole('button', { name: 'Submit' }).click()
   await expect(page.locator('.body-composition-result')).toContainText('Body fat percentage')
+}
+
+// Confirms through the calculator's own dialog (group "deleteEntry", scoped
+// separately from "Remove all entries"'s "clearEntries" group — see
+// CalculatorForm.vue) — `exact: true` is required because "Delete entry" is
+// itself a substring match for the plain "Delete" accept button.
+const deleteSelectedEntry = async (page: Page) => {
+  await page.getByRole('button', { name: 'Delete entry' }).click()
+  await page.getByRole('button', { name: 'Delete', exact: true }).click()
 }
 
 test('an entry synced while logged in survives logout, a local clear, and re-login', async ({
@@ -157,4 +169,88 @@ test('removing all entries while logged in deletes them from the backend and doe
   // resurrect the deleted entry from the backend.
   await page.waitForTimeout(1000)
   await expect.poll(() => getLocalEntries(page)).toEqual([])
+})
+
+test('deleting a single entry from the calculator only removes that entry, locally and on the backend', async ({
+  page,
+  entriesStore,
+}) => {
+  await page.goto('/')
+  await removeAllEntries(page)
+
+  await login(page)
+  await removeAllEntries(page)
+
+  await addEntry(page, '2021', 'Mar', '10')
+  // Give the datepicker panel time to fully close/settle before reopening it
+  // for a second pick in the same test — reopening too quickly races Vue's
+  // re-render of the panel and can grab a stale (about-to-detach) element.
+  await page.waitForTimeout(300)
+  await addEntry(page, '2022', 'Apr', '20')
+
+  type LocalEntry = { date: string; gender: string }
+  let localEntries: LocalEntry[] = []
+  await expect
+    .poll(async () => {
+      localEntries = await getLocalEntries(page)
+      return localEntries.filter((entry) => entry.gender === 'female')
+    })
+    .toHaveLength(2)
+  const femaleEntries = localEntries.filter((entry) => entry.gender === 'female')
+  const entryToDelete = femaleEntries.find((entry) => entry.date.startsWith('2021'))!
+  const entryToKeep = femaleEntries.find((entry) => entry.date.startsWith('2022'))!
+
+  // Wait for the background syncer to push both entries to the (mocked)
+  // backend before deleting one, otherwise the assertions below could pass by
+  // accident.
+  await expect
+    .poll(() => entriesStore.filter((entry) => entry.gender === 'female').length)
+    .toBe(2)
+
+  // The date field still points at the entry addEntry just submitted
+  // (2022-04-20), so the button starts enabled; picking an unrelated date
+  // with no entry must disable it again, and selecting the entry to delete
+  // (without submitting) must re-enable it.
+  const deleteButton = page.getByRole('button', { name: 'Delete entry' })
+  await expect(deleteButton).toBeEnabled()
+
+  // Same decade as the two entries above (2021/2022) so the datepicker's
+  // decade view never needs to navigate — pickDate only supports going back a
+  // decade, not forward.
+  await page.waitForTimeout(300)
+  await pickDate(page, '2023', 'Jul', '15')
+  await expect(deleteButton).toBeDisabled()
+
+  await page.waitForTimeout(300)
+  await pickDate(page, '2021', 'Mar', '10')
+  await expect(deleteButton).toBeEnabled()
+
+  await deleteSelectedEntry(page)
+
+  // deleteEntryService is async (awaits the backend DELETE before removing
+  // locally), so both the local removal and the backend state settle some
+  // time after the confirm click resolves — poll rather than check once.
+  await expect
+    .poll(async () => {
+      const entries = (await getLocalEntries(page)) as LocalEntry[]
+      return entries.some((entry) => entry.date === entryToDelete.date)
+    })
+    .toBe(false)
+  await expect
+    .poll(() => getLocalEntries(page))
+    .toContainEqual(expect.objectContaining({ date: entryToKeep.date }))
+
+  await expect
+    .poll(() => entriesStore.some((entry) => entry.date === entryToDelete.date))
+    .toBe(false)
+  expect(entriesStore.some((entry) => entry.date === entryToKeep.date)).toBe(true)
+
+  // A later sync tick must not resurrect the deleted entry from the backend,
+  // and must not have touched the surviving one.
+  await page.waitForTimeout(1000)
+  const finalLocalEntries = (await getLocalEntries(page)) as LocalEntry[]
+  expect(finalLocalEntries.some((entry) => entry.date === entryToDelete.date)).toBe(false)
+  expect(finalLocalEntries.some((entry) => entry.date === entryToKeep.date)).toBe(true)
+
+  await expect(deleteButton).toBeDisabled()
 })
