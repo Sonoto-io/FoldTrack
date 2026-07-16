@@ -1,7 +1,7 @@
 import { onMounted, watch } from 'vue'
 import { useFoldEntriesStore } from '@/stores/foldEntries'
 import { useAuthStore } from '@/stores/auth'
-import { getEntries, syncEntries, deleteAllEntries } from '@/api/entries'
+import { getEntries, syncEntries, deleteAllEntries, deleteEntryByDate } from '@/api/entries'
 import type {
   BodyCompositionEntry,
   BodyCompositionEntryInsert,
@@ -118,4 +118,17 @@ export const clearEntriesService = async () => {
     await deleteAllEntries(authStore.user.id)
   }
   entryStore.clearEntries()
+}
+
+// Same reasoning as clearEntriesService above: delete on the backend by date
+// first, otherwise the next sync tick would merge the still-present backend
+// row straight back into local storage.
+export const deleteEntryService = async (date: string) => {
+  const entryStore = useFoldEntriesStore()
+  const authStore = useAuthStore()
+
+  if (authStore.isAuthenticated && authStore.user) {
+    await deleteEntryByDate(authStore.user.id, date)
+  }
+  entryStore.removeEntry(date)
 }

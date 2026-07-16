@@ -21,6 +21,7 @@
           showIcon
           iconDisplay="input"
           :placeholder="initialValues.date"
+          @update:modelValue="onDateFieldChange"
         />
 
         <Message v-if="$form.date?.error" severity="error" size="small" variant="simple">
@@ -55,8 +56,22 @@
         @update:foldCount="updateFoldsCount($event)"
       />
 
-      <Button type="submit" label="Submit" class="mt-4 w-full col-span-full" />
+      <div class="flex gap-2 mt-4 col-span-full">
+        <Button type="submit" label="Submit" class="flex-1" />
+        <span v-tooltip.top="deleteTooltip" class="flex-1">
+          <Button
+            type="button"
+            label="Delete entry"
+            severity="danger"
+            outlined
+            class="w-full"
+            :disabled="!canDeleteSelectedDate"
+            @click="confirmDeleteEntry"
+          />
+        </span>
+      </div>
     </Form>
+    <ConfirmDialog group="deleteEntry" />
     <BodyCompositionResult :input-data="submittedValues" />
   </div>
 </template>
@@ -77,12 +92,53 @@ import DatePicker from 'primevue/datepicker'
 import { formatLabel } from '@/features/shared/shared.services.ts'
 import BodyCompositionResult from './BodyCompositionResult.vue'
 import { useFoldEntriesStore } from '@/stores/foldEntries'
+import { deleteEntryService } from '@/features/sync/sync.service'
+import ConfirmDialog from 'primevue/confirmdialog'
+import { useConfirm } from 'primevue/useconfirm'
 
 const foldEntriesStore = useFoldEntriesStore()
+const confirm = useConfirm()
+
+// Extracts a YYYY-MM-DD string from the value's own local calendar
+// components — not `.toISOString()`, which converts through UTC and rolls a
+// picked calendar date back a day in any positive-UTC-offset timezone (e.g.
+// picking "May 15" in Europe/Paris creates a Date at local midnight, which in
+// UTC is still "May 14" the previous evening).
+const toDateOnlyString = (value: Date | string): string => {
+  if (typeof value === 'string') return value.split('T')[0] ?? value
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 const formRef = ref()
 const gender = computed(() => formRef.value?.getFieldState('gender')?.value ?? Gender.Female)
 const foldsCount = computed(() => formRef.value?.getFieldState('foldsCount')?.value ?? 3)
+// Tracked separately from the form's own field state (rather than read via
+// formRef.getFieldState('date'), an imperative snapshot call that doesn't
+// reliably trigger Vue reactivity) and seeded unset rather than from
+// initialValues, so the delete button starts disabled even when the form's
+// default date happens to already match an existing entry (e.g. the last
+// submitted one).
+const pickedDate = ref<Date | string | null>(null)
+const onDateFieldChange = (
+  value: Date | Date[] | (Date | null)[] | string | null | undefined,
+) => {
+  pickedDate.value = Array.isArray(value) ? null : (value ?? null)
+}
+const formattedSelectedDate = computed(() => {
+  if (!pickedDate.value) return null
+  return toDateOnlyString(pickedDate.value)
+})
+const canDeleteSelectedDate = computed(
+  () =>
+    !!formattedSelectedDate.value &&
+    foldEntriesStore.entries.some((entry) => entry.date === formattedSelectedDate.value),
+)
+const deleteTooltip = computed(() =>
+  canDeleteSelectedDate.value ? undefined : 'Select the date with the entry you want to delete',
+)
 
 const lastEntry = foldEntriesStore.getLast
 const initialValues: Ref<InputDataNotNull> = ref({
@@ -133,13 +189,40 @@ const onFormSubmit = (event: FormSubmitEvent) => {
   if (Object.keys(event.errors).length === 0) {
     submittedValues.value = event.values as InputDataNotNull
 
-    const formattedDate =
-      new Date(submittedValues.value.date).toISOString().split('T')[0] ??
-      new Date(submittedValues.value.date).toISOString()
-    submittedValues.value.date = formattedDate
+    // event.values.date has been through the zod resolver's z.coerce.string(),
+    // which stringifies a Date via its default (non-ISO) toString() — not
+    // usable as a date-only value. Use the DatePicker's own tracked value
+    // instead (or the untouched initial default, if the user never opened
+    // the calendar), run through the same conversion the delete button uses,
+    // so submitted and matched dates always agree.
+    submittedValues.value.date = toDateOnlyString(pickedDate.value ?? initialValues.value.date)
     // add to store
     foldEntriesStore.insertEntry(submittedValues.value)
   }
+}
+
+const confirmDeleteEntry = () => {
+  if (!formattedSelectedDate.value) return
+
+  const dateToDelete = formattedSelectedDate.value
+  confirm.require({
+    group: 'deleteEntry',
+    message: `This will delete the entry for ${dateToDelete}.`,
+    header: 'Are you sure?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Delete',
+      severity: 'danger',
+    },
+    accept: async () => {
+      await deleteEntryService(dateToDelete)
+    },
+  })
 }
 
 // Update manually from sub component

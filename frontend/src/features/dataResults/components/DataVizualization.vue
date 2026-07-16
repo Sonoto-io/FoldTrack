@@ -16,7 +16,7 @@
         @click="confirmDeleteAll"
         class="w-full"
       />
-      <ConfirmDialog></ConfirmDialog>
+      <ConfirmDialog group="clearEntries"></ConfirmDialog>
     </div>
     <div v-else class="flex justify-center items-center text-muted-foreground card">
       <JPExplanation />
@@ -101,6 +101,7 @@ const foldEntriesToEntryData = (entries: BodyCompositionEntry[]) => {
 
 const confirmDeleteAll = () => {
   confirm.require({
+    group: 'clearEntries',
     message: 'You will delete all data forever.',
     header: 'Are you sure ?',
     icon: 'pi pi-exclamation-triangle',

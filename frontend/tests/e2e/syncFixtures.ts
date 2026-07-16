@@ -67,11 +67,22 @@ export const test = base.extend<{ entriesStore: StoredEntry[] }>({
       if (request.method() === 'DELETE') {
         const idFilter = url.searchParams.get('id')
         const userIdFilter = url.searchParams.get('user_id')
+        const dateFilter = url.searchParams.get('date')
         if (idFilter?.startsWith('in.(')) {
           const ids = idFilter.slice(4, -1).split(',')
           for (const id of ids) {
             const index = entriesStore.findIndex((entry) => entry.id === id)
             if (index !== -1) entriesStore.splice(index, 1)
+          }
+        } else if (userIdFilter?.startsWith('eq.') && dateFilter?.startsWith('eq.')) {
+          // Single-entry delete (deleteEntryByDate) — must only remove the row
+          // matching both user_id AND date, not every row for the user.
+          const userId = userIdFilter.slice(3)
+          const date = dateFilter.slice(3)
+          for (let i = entriesStore.length - 1; i >= 0; i--) {
+            if (entriesStore[i]?.user_id === userId && entriesStore[i]?.date === date) {
+              entriesStore.splice(i, 1)
+            }
           }
         } else if (userIdFilter?.startsWith('eq.')) {
           const userId = userIdFilter.slice(3)
